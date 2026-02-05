@@ -8,35 +8,53 @@ jobs:
   test-gemini:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: API Call with Status Code
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # 1. APIを叩いて、レスポンスボディとステータスコードを両方取得
-          # -w で HTTPコードを最後に出力させる
+          # 1. Postmanで成功したURLとモデル名（gemini-2.5-flash）を指定
+          # ※ URLに直接キーを埋め込むのが一番確実です
+          URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}"
+
           RESPONSE_FULL=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+            "$URL" \
             -H 'Content-Type: application/json' \
             -X POST \
             -d '{
               "contents": [{
-                "parts":[{"text": "Hello Gemini!"}]
+                "parts":[{"text": "Hello Gemini! This is a test from GitHub Actions."}]
               }]
             }')
 
-          # 2. ボディとステータスを分離して表示
+          # 2. ボディとステータスを分離
           BODY=$(echo "$RESPONSE_FULL" | sed '$d')
           STATUS=$(echo "$RESPONSE_FULL" | tail -n 1 | cut -d':' -f2)
 
           echo "==============================="
           echo "HTTP Status Code: $STATUS"
           echo "==============================="
-          echo "Response Body:"
-          echo "$BODY"
+          
+          # jqが入っていれば綺麗に表示、なければそのまま表示
+          if command -v jq > /dev/null; then
+            echo "Response Body (Formatted):"
+            echo "$BODY" | jq .
+          else
+            echo "Response Body:"
+            echo "$BODY"
+          fi
           echo "==============================="
 
-          # 3. 200以外ならわざとエラーにしてActionsを止める（デバッグしやすくするため）
+          # 3. 200以外ならエラー終了
           if [ "$STATUS" -ne 200 ]; then
             echo "Error: API request failed with status $STATUS"
             exit 1
+          fi
+
+          # 4. (オプション) AIの返答テキストだけを抽出してログに出す
+          if [ "$STATUS" -eq 200 ]; then
+            TEXT=$(echo "$BODY" | jq -r '.candidates[0].content.parts[0].text')
+            echo "Gemini says: $TEXT"
           fi

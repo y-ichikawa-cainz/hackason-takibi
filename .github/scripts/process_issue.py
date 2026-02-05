@@ -36,8 +36,9 @@ def generate_spec_with_openai(issue_title, issue_body, code_content):
         raise ValueError("OPENAI_API_KEY が設定されていません")
     
     # コード情報を整形
+    MAX_CODE_PREVIEW_LENGTH = 500
     code_summary = "\n\n".join([
-        f"=== {filename} ===\n{content[:500]}..."
+        f"=== {filename} ===\n{content[:MAX_CODE_PREVIEW_LENGTH]}..."
         for filename, content in code_content.items()
     ])
     
@@ -188,7 +189,7 @@ def create_confluence_page(spec, jira_key=None):
     
     body_html = f"""
     <h2>概要</h2>
-    <p>{content.replace(chr(10), '<br/>')}</p>
+    <p>{content.replace('\n', '<br/>')}</p>
     
     <h2>受け入れ条件</h2>
     {acceptance_html}

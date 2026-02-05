@@ -28,7 +28,7 @@ jobs:
           USER_REQUEST=$(cat "$TARGET_FILE")
           
           # 2. テンプレートの読み込み（決め打ち）
-          TICKET_TEMPLATE=$(cat templates/ticket_template.txt)
+          TICKET_TEMPLATE=$(cat templates/ticket_template.md)
           
           # 3. /src 配下のコード読み込み（必要になったらコメントアウトを外す）
           # SOURCE_CODES=$(find src -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" \) -exec echo "--- File: {} ---" \; -exec cat {} \;)

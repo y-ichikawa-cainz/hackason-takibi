@@ -8,9 +8,10 @@ def add_employee():
     emp_id = input('従業員ID: ')
     name = input('名前: ')
     dept = input('部署: ')
+    org_id = input('所属組織ID: ')
     with open(EMPLOYEE_CSV, 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow([emp_id, name, dept])
+        writer.writerow([emp_id, name, dept, org_id])
     print('従業員を追加しました。')
 
 
@@ -20,7 +21,7 @@ def list_employees():
         return
     with open(EMPLOYEE_CSV, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
-        print('ID\t名前\t部署')
+        print('ID\t名前\t部署\t所属組織ID')
         for row in reader:
             print('\t'.join(row))
 

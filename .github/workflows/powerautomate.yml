@@ -17,15 +17,22 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # ペイロードから値を取得
-          USER_MESSAGE: ${{ github.event.client_payload.message }}
-          USER_COMMENT: ${{ github.event.client_payload.comment }}
+          USER_REQUEST: ${{ github.event.client_payload.request }}
+          USER_DETAIL: ${{ github.event.client_payload.detail }}
+          USER_BACKGROUND: ${{ github.event.client_payload.background }}
+          USER_PROBLEM: ${{ github.event.client_payload.problem }}
+          USER_BUSINESS_USER: ${{ github.event.client_payload.business_user }}
+          USER_GOAL: ${{ github.event.client_payload.goal }}
+          USER_OTHER_NOTES: ${{ github.event.client_payload.other_notes }}
+
+
         run: |
           # 1. 要望の結合
           # メッセージとコメントを組み合わせて1つの要望とする
-          USER_REQUEST=$(echo -e "Message: $USER_MESSAGE\nComment: $USER_COMMENT")
-          
-          if [ -z "$USER_MESSAGE" ] && [ -z "$USER_COMMENT" ]; then
-            echo "Error: client_payload に message または comment が含まれていません。"
+          USER_REQUEST=$(echo -e "Message: $USER_REQUEST\nDetail: $USER_DETAIL\nBackground: $USER_BACKGROUND\nProblem: $USER_PROBLEM\nBusiness User: $USER_BUSINESS_USER\nGoal: $USER_GOAL\nOther Notes: $USER_OTHER_NOTES")
+
+          if [ -z "$USER_REQUEST" ]; then
+            echo "Error: client_payload に request が含まれていません。"
             exit 1
           fi
 

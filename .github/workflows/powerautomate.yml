@@ -128,7 +128,7 @@ jobs:
         with:
           project: 'PLN99' # あなたのプロジェクトキー
           issuetype: 'Task'
-          summary: "🚀 ${{ github.event.client_payload.message }}"
+          summary: "Jira自動生成 $(date +%Y/%m/%d)"
           description: "${{ env.TICKET_BODY }}"
 
       - name: Log Ticket Link

@@ -36,15 +36,26 @@ jobs:
           fi
           TICKET_TEMPLATE=$(cat templates/ticket_template.md)
           
-          # 3. ソース構成（必要に応じて有効化）
-          SOURCE_CODES="現在はソースコードの読み込みをスキップしています。"
+          # 3. /src 配下のソースコードを読み込む 
+          # node_modules や .git、画像ファイルなどを除外してテキストファイルのみを抽出
+          echo "Reading source codes from /src..."
+          SOURCE_CODES=$(find src -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.html" -o -name "*.css" -o -name "*.java" -o -name "*.go" \) -not -path "*/.*" | while read -r file; do
+            echo -e "\n--- File: $file ---"
+            cat "$file"
+          done)
+
+          if [ -z "$SOURCE_CODES" ]; then
+            SOURCE_CODES="src配下に該当するソースコードが見つかりませんでした。"
+          fi
 
           # 4. プロンプトの構築
           FULL_PROMPT_TEXT=$(cat <<EOS
-          あなたは優秀なPMです。以下の【要望】を元に、Jiraチケットを作成してください。
+          あなたは優秀なPM＆シニアエンジニアです。以下の【要望】を元に、Jiraチケットを作成してください。
+          以下の【要望】を元に、Jiraチケットを作成してください。
 
           ### 指示:
           - 【テンプレート】の項目や見出しを厳守すること。md形式で読みやすいドキュメントにすること。
+          - 【参考ソースコード】を解析し、修正が必要な具体的なファイル名や関数名、ロジックの要点を「実装内容」に含めてください。
           - 開発者が即座に実装詳細を理解できるよう、具体的かつ簡潔に記述すること。
 
           ### 【要望】:
@@ -53,12 +64,12 @@ jobs:
           ### 【テンプレート】:
           $TICKET_TEMPLATE
 
-          ### 【参考情報（ソース構成）】:
+          ### 【参考ソースコード（/src）】:
           $SOURCE_CODES
           EOS
           )
 
-          # 5. APIリクエスト (gemini-2.0-flash を指定)
+          # 5. APIリクエスト (gemini-2.0-flash)
           RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H 'Content-Type: application/json' \
             -d "{
@@ -78,7 +89,7 @@ jobs:
 
           mkdir -p output
           echo "$TICKET_CONTENT" > "output/ticket_$(date +%Y%m%d_%H%M%S).md"
-
+          
       - name: Commit and Push
         run: |
           git config user.name "github-actions[bot]"

@@ -104,3 +104,32 @@ jobs:
           git add output/
           git commit -m "docs: AI generated Jira ticket from dispatch" || echo "No changes to commit"
           git push
+
+      - name: Prepare Jira Content
+        run: |
+          # 作成したばかりのファイルを読み込んで環境変数に入れる
+          # 最新のファイルを取得
+          LATEST_FILE=$(ls -t output/*.md | head -n 1)
+          # Jiraに送る用に内容を整形（あまりに長いと制限があるのでcatで変数へ）
+          echo "TICKET_BODY<<EOF" >> $GITHUB_ENV
+          cat "$LATEST_FILE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Login to Jira
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+      - name: Create Ticket
+        id: create
+        uses: atlassian/gajira-create@v3
+        with:
+          project: 'PLN99' # あなたのプロジェクトキー
+          issuetype: 'Task'
+          summary: "🚀 ${{ github.event.client_payload.message }}"
+          description: "${{ env.TICKET_BODY }}"
+
+      - name: Log Ticket Link
+        run: echo "Jira Ticket Created"

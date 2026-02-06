@@ -122,13 +122,16 @@ jobs:
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
 
+      - name: Get current date
+        run: echo "CURRENT_DATE=$(date +'%Y/%m/%d')" >> $GITHUB_ENV
+
       - name: Create Ticket
         id: create
         uses: atlassian/gajira-create@v3
         with:
           project: 'PLN99' # あなたのプロジェクトキー
           issuetype: 'Task'
-          summary: "Jira自動生成 $(date +%Y/%m/%d)"
+          summary: "Jira自動生成 ${{ env.CURRENT_DATE }}"
           description: "${{ env.TICKET_BODY }}"
 
       - name: Log Ticket Link
